@@ -2,7 +2,9 @@
 class DeltagerManager {
   // Deklarer felt-variabler her
   startnrInput = document.getElementById("startnummer");
-  deltagernavnInput = document.getElementById("deltagernavn");
+  //deltagernavnInput = document.getElementById("deltagernavn");
+
+  deltagernavnInput = document.getElementsByTagName("input")[1];
   sluttidInput = document.getElementById("sluttid");
   button = document.getElementsByTagName("button")[0];
   showDeltagereBtn = document.getElementsByTagName("button")[1];
@@ -56,8 +58,9 @@ class DeltagerManager {
           paragraph.classList.add("hidden");
         }, 5000);
       } else {
-        //WTF
-        deltagernavn.setCustomValidity("Navn må starte med en stor bokstav");
+        this.deltagernavnInput.reportValidity(
+          this.deltagernavnInput.getAttribute("title")
+        );
       }
     }
   }
