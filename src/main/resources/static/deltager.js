@@ -32,6 +32,16 @@ class DeltagerManager {
 
     //Må fikse at startnr ikke er det samme
     if (startnr !== "" || deltagernavn !== "" || sluttid !== "") {
+      
+      const startnrExist = this.deltagere.some(
+        (deltager) => deltager.startnummer === startnr
+      );
+
+      if (startnrExist) {
+        this.startnrInput.reportValidity("Startnummer eksisterer allerede");
+        return;
+      }
+
       //Tester om deltagernavn er gyldig
       if (regex.test(deltagernavn)) {
         // Oppretter et deltager-objekt hvis alle feltene er fylt
@@ -54,9 +64,9 @@ class DeltagerManager {
         this.deltagere.push(deltager);
         console.log("Registrert deltager:", deltager);
 
-        startnr = "";
-        deltagernavn = "";
-        sluttid = "";
+        this.startnrInput.value = "";
+        this.deltagernavnInput.value = "";
+        this.sluttidInput.value = "";
 
         // Gjør <p> elementet hidden igjen etter 5 sekunder
         setTimeout(() => {
@@ -93,7 +103,6 @@ class DeltagerManager {
     const rangering = this.deltagere.sort((first, second) => {
       return timeToSec(first.sluttid) - timeToSec(second.sluttid);
     });
-
 
     const tidFilter =
       nedregrense.value && ovregrense.value
