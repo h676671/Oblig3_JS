@@ -30,6 +30,7 @@ class DeltagerManager {
     const regex =
       /^([A-Z][a-z]+(-[A-Z][a-z]+)*)+( [A-Z][a-z]+(-[A-Z][a-z]+)*)*$/;
 
+    //Må fikse at startnr ikke er det samme
     if (startnr !== "" || deltagernavn !== "" || sluttid !== "") {
       //Tester om deltagernavn er gyldig
       if (regex.test(deltagernavn)) {
@@ -52,6 +53,10 @@ class DeltagerManager {
 
         this.deltagere.push(deltager);
         console.log("Registrert deltager:", deltager);
+
+        startnr = "";
+        deltagernavn = "";
+        sluttid = "";
 
         // Gjør <p> elementet hidden igjen etter 5 sekunder
         setTimeout(() => {
@@ -77,32 +82,57 @@ class DeltagerManager {
 
     //Ser komplisert ut men er egentlig veldig simpelt
 
-    //Hvis nedregrense eller ovregrense er tomme, så viser vi alle deltagere
-    if (nedregrense.value === "" || ovregrense.value === "") {
-      this.deltagere.map((deltager, index) => {
-        const tr = document.createElement("tr");
+    //Gjør det lettere å filtrere på tid
+    const timeToSec = (sluttid) => {
+      const [timer, minutter, sec] = sluttid.split(":").map(Number);
 
-        //Lager celler for hver attributt
-        const tdPlassering = document.createElement("td");
-        const tdNr = document.createElement("td");
-        const tdNavn = document.createElement("td");
-        const tdSluttid = document.createElement("td");
+      //3600 sekunder i en time, 60 sekunder i et minutt, 1 sekund i et sekund
+      return timer * 3600 + minutter * 60 + sec;
+    };
 
-        liste.appendChild(tr);
+    const rangering = this.deltagere.sort((first, second) => {
+      return timeToSec(first.sluttid) - timeToSec(second.sluttid);
+    });
 
-        tr.appendChild(tdPlassering);
-        tr.appendChild(tdNr);
-        tr.appendChild(tdNavn);
-        tr.appendChild(tdSluttid);
 
-        tdPlassering.textContent = index + 1; //Plus 1 eller så får vi plassering 0, som ikke gir mening i denne konteksten
-        tdNr.textContent = deltager.startnummer;
-        tdNavn.textContent = deltager.navn;
-        tdSluttid.textContent = deltager.sluttid;
-      });
+    const tidFilter =
+      nedregrense.value && ovregrense.value
+        ? rangering.filter((deltager) => {
+            const slutTidSec = timeToSec(deltager.sluttid);
+            return (
+              slutTidSec >= timeToSec(nedregrense.value) &&
+              slutTidSec <= timeToSec(ovregrense.value)
+            );
+          })
+        : rangering; //Hvis nedregrense eller ovregrense er tomme, så viser vi alle deltagere
 
-      console.log(this.deltagere.map((deltagere) => deltagere.navn));
-    }
+    //Itterer over tidFilter istedenfor deltager, da skal jeg få ut alle deltagerne om jeg ikke har noen grenser
+    tidFilter.map((deltager, index) => {
+      const tr = document.createElement("tr");
+
+      //Finere måte å lage flere konstanter som gjør det samme
+      /* const [tdPlassering, tdNr, tdNavn, tdSluttid] =
+          document.createElement("td"); */
+
+      const tdPlassering = document.createElement("td");
+      const tdNr = document.createElement("td");
+      const tdNavn = document.createElement("td");
+      const tdSluttid = document.createElement("td");
+
+      liste.appendChild(tr);
+
+      tr.appendChild(tdPlassering);
+      tr.appendChild(tdNr);
+      tr.appendChild(tdNavn);
+      tr.appendChild(tdSluttid);
+
+      tdPlassering.textContent = index + 1; //Plus 1 eller så får vi plassering 0, som ikke gir mening i denne konteksten
+      tdNr.textContent = deltager.startnummer;
+      tdNavn.textContent = deltager.navn;
+      tdSluttid.textContent = deltager.sluttid;
+    });
+
+    console.log(this.deltagere.map((deltagere) => deltagere.navn));
   }
 }
 
